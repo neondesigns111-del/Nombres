@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LumineNombres — Nombres 3D con Luz LED</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════
+       VARIABLES — LIGHT / DARK
+    ═══════════════════════════════════════════════ */
+    :root {
+      --crema: #faf6f0;
+      --crema-oscura: #f0e8dc;
+      --cafe: #2c1f14;
+      --cafe-medio: #5c3d2e;
+      --dorado: #b8822a;
+      --dorado-claro: #d4a84b;
+      --gris-texto: #6b5c4e;
+      --blanco: #ffffff;
+      --sombra: rgba(44,31,20,0.12);
+      --bg-main: #faf6f0;
+      --bg-card: #ffffff;
+      --bg-strip: #2c1f14;
+      --text-main: #2c1f14;
+      --text-sub: #6b5c4e;
+      --nav-bg: rgba(250,246,240,0.94);
+      --nav-border: rgba(184,130,42,0.18);
+      --timeline-line: rgba(184,130,42,0.25);
+      --proceso-bg: #2c1f14;
+      --proceso-text: #faf6f0;
+      --test-bg: #f0e8dc;
+      --test-card-bg: #faf6f0;
+      --footer-bg: #2c1f14;
+      --transition: 0.35s ease;
+    }
+
+    [data-theme="dark"] {
+      --crema: #1a1208;
+      --crema-oscura: #221808;
+      --cafe: #f0e8dc;
+      --cafe-medio: #c8a882;
+      --dorado: #d4a84b;
+      --dorado-claro: #e8c06a;
+      --gris-texto: #a89070;
+      --sombra: rgba(0,0,0,0.35);
+      --bg-main: #120e07;
+      --bg-card: #1e1510;
+      --bg-strip: #0a0704;
+      --text-main: #f0e8dc;
+      --text-sub: #a89070;
+      --nav-bg: rgba(18,14,7,0.95);
+      --nav-border: rgba(212,168,75,0.2);
+      --timeline-line: rgba(212,168,75,0.2);
+      --proceso-bg: #0a0704;
+      --proceso-text: #f0e8dc;
+      --test-bg: #1e1510;
+      --test-card-bg: #261c12;
+      --footer-bg: #0a0704;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Jost', sans-serif;
+      overflow-x: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ═══════════════════════════════════════════════
+       NAVBAR MEJORADA
+    ═══════════════════════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--nav-border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 68px;
+    }
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 700; color: var(--text-main);
+      text-decoration: none; letter-spacing: 0.5px;
+      transition: color var(--transition);
+    }
+    .logo em { color: var(--dorado); font-style: normal; }
+
+    /* Links con indicador animado */
+    .nav-links {
+      display: flex; gap: 0; list-style: none;
+    }
+    .nav-links li a {
+      text-decoration: none; color: var(--text-sub);
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 1.4px;
+      text-transform: uppercase; padding: 0.5rem 1.1rem;
+      position: relative; display: block;
+      transition: color 0.25s;
+    }
+    .nav-links li a::after {
+      content: ''; position: absolute; bottom: -2px; left: 50%; right: 50%;
+      height: 1.5px; background: var(--dorado);
+      transition: left 0.3s ease, right 0.3s ease;
+    }
+    .nav-links li a:hover { color: var(--dorado); }
+    .nav-links li a:hover::after { left: 1.1rem; right: 1.1rem; }
+
+    /* Separador decorativo */
+    .nav-sep {
+      width: 1px; height: 24px; background: var(--nav-border);
+      margin: 0 1rem; flex-shrink: 0;
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+    /* Toggle día/noche */
+    .theme-toggle {
+      width: 44px; height: 24px; background: var(--crema-oscura);
+      border: 1.5px solid var(--nav-border); border-radius: 12px;
+      cursor: pointer; position: relative; transition: background 0.3s, border-color 0.3s;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .theme-toggle {
+      background: rgba(212,168,75,0.15);
+      border-color: rgba(212,168,75,0.4);
+    }
+    .theme-toggle-knob {
+      position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--dorado);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; line-height: 1;
+    }
+    [data-theme="dark"] .theme-toggle-knob {
+      transform: translateX(20px);
+    }
+    .theme-toggle-knob::before { content: '☀️'; }
+    [data-theme="dark"] .theme-toggle-knob::before { content: '🌙'; }
+
+    .nav-cart-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--text-main); color: var(--bg-main);
+      padding: 0.5rem 1.2rem; border-radius: 2px;
+      text-decoration: none; font-size: 0.78rem;
+      font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      transition: background 0.25s, color 0.25s; position: relative;
+    }
+    .nav-cart-btn:hover { background: var(--dorado); color: #fff; }
+    .cart-badge {
+      background: var(--dorado-claro); color: var(--cafe);
+      border-radius: 50%; width: 18px; height: 18px;
+      font-size: 0.65rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; top: -7px; right: -7px;
+    }
+
+    /* Hamburger */
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--text-main); border-radius: 2px; transition: all 0.3s;
+    }
+    .mobile-menu {
+      display: none; position: fixed; inset: 68px 0 0 0;
+      background: var(--bg-main); z-index: 190;
+      flex-direction: column; align-items: center;
+      justify-content: center; gap: 2.5rem;
+      transition: background var(--transition);
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-size: 1.4rem; font-weight: 500; color: var(--text-main);
+      text-decoration: none; letter-spacing: 2px; text-transform: uppercase;
+      transition: color 0.25s;
+    }
+    .mobile-menu a:hover { color: var(--dorado); }
+    .mobile-menu-theme {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--text-sub);
+    }
+
+    /* ═══════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════ */
+    .hero {
+      min-height: 100svh;
+      display: grid; grid-template-columns: 1fr 1fr;
+      padding-top: 68px;
+    }
+    .hero-left {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 5rem 4rem 5rem 5rem;
+      background: var(--bg-main);
+      transition: background var(--transition);
+    }
+    .hero-eyebrow {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--dorado); margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 4.5vw, 5rem); font-weight: 700;
+      line-height: 1.05; color: var(--text-main); margin-bottom: 1.5rem;
+      transition: color var(--transition);
+    }
+    .hero-title em { color: var(--dorado); font-style: italic; }
+    .hero-desc {
+      font-size: 1rem; color: var(--text-sub);
+      line-height: 1.8; max-width: 420px; margin-bottom: 2.8rem; font-weight: 300;
+      transition: color var(--transition);
+    }
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn-solid {
+      background: var(--text-main); color: var(--bg-main);
+      padding: 0.9rem 2.2rem; border-radius: 2px;
+      text-decoration: none; font-size: 0.82rem; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase; transition: background 0.25s, color 0.25s;
+      display: inline-block;
+    }
+    .btn-solid:hover { background: var(--dorado); color: #fff; }
+    .btn-ghost {
+      background: transparent; color: var(--text-main);
+      padding: 0.9rem 2.2rem; border-radius: 2px; border: 1.5px solid var(--text-main);
+      text-decoration: none; font-size: 0.82rem; font-weight: 500;
+      letter-spacing: 1.5px; text-transform: uppercase; transition: all 0.25s;
+      display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--dorado); color: var(--dorado); }
+    .hero-right {
+      position: relative; overflow: hidden;
+    }
+    .hero-right img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .hero-right-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(44,31,20,0.2) 0%, transparent 60%);
+    }
+    .hero-badge {
+      position: absolute; bottom: 2.5rem; left: 2.5rem;
+      background: rgba(250,246,240,0.92); backdrop-filter: blur(8px);
+      padding: 1rem 1.4rem; border-left: 3px solid var(--dorado);
+    }
+    .hero-badge strong { display: block; font-size: 1.2rem; font-weight: 700; color: #2c1f14; }
+    .hero-badge span { font-size: 0.75rem; color: #6b5c4e; letter-spacing: 1px; }
+
+    /* ═══════════════════════════════════════════════
+       STRIP FEATURES
+    ═══════════════════════════════════════════════ */
+    .features-strip {
+      background: var(--bg-strip); color: var(--crema-oscura);
+      padding: 1.5rem 2rem;
+      transition: background var(--transition);
+    }
+    [data-theme="dark"] .features-strip { color: var(--text-sub); }
+    .features-strip-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      flex-wrap: wrap; gap: 2rem;
+    }
+    .feat-item {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase; opacity: 0.88;
+    }
+    .feat-item span { font-size: 1rem; }
+    .feat-sep { color: var(--dorado); opacity: 0.5; }
+
+    /* ═══════════════════════════════════════════════
+       TRABAJOS — TIMELINE + CARRUSEL
+    ═══════════════════════════════════════════════ */
+    .trabajos-section {
+      max-width: 1200px; margin: 0 auto;
+      padding: 7rem 2rem;
+    }
+    .section-head { text-align: center; margin-bottom: 4rem; }
+    .section-eyebrow {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--dorado); margin-bottom: 1rem; display: block;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 700; color: var(--text-main);
+      transition: color var(--transition);
+    }
+
+    /* Layout: timeline izquierda + carrusel derecha */
+    .trabajos-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    /* TIMELINE */
+    .timeline {
+      position: sticky; top: 100px;
+    }
+    .timeline-title {
+      font-size: 0.68rem; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--dorado); font-weight: 600; margin-bottom: 1.5rem;
+    }
+    .timeline-list {
+      list-style: none;
+      border-left: 1.5px solid var(--timeline-line);
+      padding-left: 0;
+    }
+    .timeline-item {
+      position: relative;
+      padding: 0.75rem 0 0.75rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute; left: -5px; top: 50%;
+      transform: translateY(-50%);
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--timeline-line);
+      border: 1.5px solid var(--timeline-line);
+      transition: all 0.25s;
+    }
+    .timeline-item.active::before,
+    .timeline-item:hover::before {
+      background: var(--dorado);
+      border-color: var(--dorado);
+      box-shadow: 0 0 0 4px rgba(184,130,42,0.15);
+    }
+    .timeline-item-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--text-sub); transition: color 0.25s;
+    }
+    .timeline-item.active .timeline-item-label,
+    .timeline-item:hover .timeline-item-label {
+      color: var(--dorado);
+    }
+    .timeline-item-meta {
+      font-size: 0.72rem; color: var(--text-sub);
+      letter-spacing: 0.5px; margin-top: 0.15rem; opacity: 0.7;
+    }
+    .timeline-price-tag {
+      display: inline-block;
+      margin-top: 0.4rem;
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--dorado-claro);
+      background: rgba(184,130,42,0.1);
+      padding: 0.15rem 0.5rem; border-radius: 1px;
+      letter-spacing: 0.5px;
+    }
+
+    /* CARRUSEL */
+    .carousel-wrap {
+      position: relative; overflow: hidden;
+    }
+    .carousel-track {
+      display: flex; gap: 1.5rem;
+      transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .gal-card {
+      position: relative; overflow: hidden; border-radius: 3px;
+      background: var(--bg-card); cursor: pointer;
+      transition: transform 0.4s, box-shadow 0.4s, background var(--transition);
+      flex: 0 0 calc(50% - 0.75rem);
+    }
+    .gal-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px var(--sombra); }
+    .gal-card img {
+      width: 100%; aspect-ratio: 4/5; object-fit: cover;
+      display: block; transition: transform 0.6s;
+    }
+    .gal-card:hover img { transform: scale(1.05); }
+    .gal-card-info { padding: 1.2rem 1.4rem; }
+    .gal-card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem; font-weight: 700; color: var(--text-main);
+      margin-bottom: 0.25rem; transition: color var(--transition);
+    }
+    .gal-card-sub { font-size: 0.78rem; color: var(--text-sub); letter-spacing: 0.5px; transition: color var(--transition); }
+    .gal-card-price {
+      position: absolute; top: 1rem; right: 1rem;
+      background: var(--text-main); color: var(--bg-main);
+      padding: 0.4rem 0.9rem; font-size: 0.82rem; font-weight: 600; border-radius: 1px;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* Precio dinámico */
+    .price-note {
+      font-size: 0.65rem; display: block; opacity: 0.7;
+      margin-top: 0.15rem; letter-spacing: 0.3px;
+    }
+
+    /* Controles carrusel */
+    .carousel-controls {
+      display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;
+    }
+    .carousel-btn {
+      width: 40px; height: 40px;
+      background: var(--bg-card); border: 1.5px solid var(--nav-border);
+      color: var(--text-main); border-radius: 2px; cursor: pointer;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      transition: background 0.25s, border-color 0.25s, color 0.25s;
+    }
+    .carousel-btn:hover { background: var(--dorado); border-color: var(--dorado); color: #fff; }
+    .carousel-dots {
+      display: flex; gap: 0.4rem; align-items: center; margin-right: auto;
+    }
+    .carousel-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--timeline-line); cursor: pointer; transition: all 0.25s;
+    }
+    .carousel-dot.active { background: var(--dorado); width: 18px; border-radius: 3px; }
+
+    /* Panel info precio dinámico */
+    .precio-dinamico {
+      background: var(--bg-card);
+      border: 1px solid var(--nav-border);
+      border-left: 3px solid var(--dorado);
+      padding: 1.4rem 1.6rem;
+      margin-top: 1.5rem;
+      border-radius: 0 3px 3px 0;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    /* Desktop: mostrar en sidebar, ocultar en carrusel */
+    .precio-mobile { display: none; }
+    .precio-desktop { display: block; }
+    .precio-dinamico-title {
+      font-size: 0.68rem; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--dorado); font-weight: 600; margin-bottom: 0.75rem;
+    }
+    .precio-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem; font-weight: 700; color: var(--text-main);
+      line-height: 1; margin-bottom: 0.4rem;
+      transition: color var(--transition);
+    }
+    .precio-main span {
+      font-size: 0.9rem; font-weight: 400; color: var(--text-sub);
+      font-family: 'Jost', sans-serif;
+    }
+    .precio-factors {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;
+    }
+    .precio-factor {
+      font-size: 0.7rem; padding: 0.2rem 0.6rem;
+      border-radius: 1px; letter-spacing: 0.5px;
+      background: rgba(184,130,42,0.08);
+      color: var(--text-sub); border: 1px solid var(--nav-border);
+    }
+    .precio-factor.active {
+      background: rgba(184,130,42,0.15);
+      color: var(--dorado); border-color: rgba(184,130,42,0.35);
+    }
+    .precio-desc {
+      font-size: 0.75rem; color: var(--text-sub); margin-top: 0.75rem;
+      line-height: 1.6; font-style: italic; opacity: 0.8;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PROCESO
+    ═══════════════════════════════════════════════ */
+    .proceso {
+      background: var(--proceso-bg); color: var(--proceso-text);
+      padding: 6rem 2rem;
+      transition: background var(--transition), color var(--transition);
+    }
+    .proceso-inner { max-width: 1200px; margin: 0 auto; }
+    .proceso .section-eyebrow { color: var(--dorado-claro); }
+    .proceso .section-title { color: var(--proceso-text); margin-bottom: 4rem; }
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+    }
+    .step {
+      padding: 2rem 1.5rem; border-top: 2px solid rgba(184,130,42,0.4);
+      transition: border-color 0.3s;
+    }
+    .step:hover { border-color: var(--dorado); }
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem; font-weight: 400; color: var(--dorado-claro); opacity: 0.5;
+      line-height: 1; margin-bottom: 1.2rem;
+    }
+    .step h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.7rem; letter-spacing: 0.5px; }
+    .step p { font-size: 0.84rem; opacity: 0.7; line-height: 1.75; font-weight: 300; }
+
+    /* ═══════════════════════════════════════════════
+       GALERÍA AMBIENTE
+    ═══════════════════════════════════════════════ */
+    .galeria-ambiente {
+      padding: 6rem 2rem;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .ambiente-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.2rem;
+    }
+    .amb-img { overflow: hidden; border-radius: 3px; }
+    .amb-img img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform 0.6s;
+    }
+    .amb-img:hover img { transform: scale(1.04); }
+    .amb-img.wide { grid-column: span 2; }
+    .amb-img:nth-child(1) img { aspect-ratio: 16/10; }
+    .amb-img:nth-child(2) img { aspect-ratio: 4/3; }
+    .amb-img:nth-child(3) img { aspect-ratio: 4/3; }
+    .amb-img:nth-child(4) img { aspect-ratio: 16/10; }
+
+    /* ═══════════════════════════════════════════════
+       TESTIMONIOS
+    ═══════════════════════════════════════════════ */
+    .testimonios {
+      background: var(--test-bg); padding: 6rem 2rem;
+      transition: background var(--transition);
+    }
+    .testimonios-inner { max-width: 1200px; margin: 0 auto; }
+    .testimonios-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3.5rem;
+    }
+    .test-card {
+      background: var(--test-card-bg); padding: 2rem;
+      border-radius: 3px; box-shadow: 0 4px 20px var(--sombra);
+      transition: transform 0.3s, box-shadow 0.3s, background var(--transition);
+    }
+    .test-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px var(--sombra); }
+    .test-stars { color: var(--dorado); font-size: 0.9rem; margin-bottom: 1rem; letter-spacing: 3px; }
+    .test-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem; line-height: 1.75; color: var(--text-main);
+      font-style: italic; margin-bottom: 1.5rem; transition: color var(--transition);
+    }
+    .test-author { font-size: 0.78rem; font-weight: 600; color: var(--dorado); letter-spacing: 1.5px; text-transform: uppercase; }
+
+    /* ═══════════════════════════════════════════════
+       CTA FINAL
+    ═══════════════════════════════════════════════ */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--dorado) 0%, var(--dorado-claro) 100%);
+      padding: 5rem 2rem; text-align: center;
+    }
+    .cta-banner h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 700;
+      color: #2c1f14; margin-bottom: 1rem;
+    }
+    .cta-banner p { color: #5c3d2e; font-size: 1rem; margin-bottom: 0.5rem; max-width: 500px; margin-left: auto; margin-right: auto; opacity: 0.85; }
+    .cta-banner .precio-info {
+      font-size: 0.82rem; color: #2c1f14; opacity: 0.65; margin-bottom: 2.5rem;
+      font-style: italic;
+    }
+    .cta-banner .btn-solid { background: #2c1f14; color: #faf6f0; }
+    .cta-banner .btn-solid:hover { background: #1a0f08; color: #faf6f0; }
+
+    /* ═══════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════ */
+    footer {
+      background: var(--footer-bg); color: var(--crema-oscura); padding: 3rem 2rem;
+      transition: background var(--transition);
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem; font-weight: 700; color: var(--crema-oscura);
+    }
+    .footer-logo em { color: var(--dorado-claro); font-style: normal; }
+    footer p { font-size: 0.75rem; opacity: 0.5; color: var(--crema-oscura); }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.75rem; color: rgba(240,232,220,0.55); text-decoration: none; letter-spacing: 1px; text-transform: uppercase; transition: color 0.25s; }
+    .footer-links a:hover { color: var(--dorado-claro); }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   RESPONSIVE MEJORADO
+═══════════════════════════════════════════════ */
+
+html,
+body{
+  width:100%;
+  overflow-x:hidden;
+}
+
+/* Desktop chico */
+@media (max-width:1024px){
+
+  .trabajos-layout{
+    grid-template-columns:220px 1fr;
+    gap:2rem;
+  }
+
+  .steps-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .ambiente-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .amb-img.wide{
+    grid-column:span 2;
+  }
+}
+
+/* Tablet */
+@media (max-width:900px){
+
+  .trabajos-layout{
+    display:flex;
+    flex-direction:column;
+    gap:2rem;
+  }
+
+  .timeline{
+    position:static;
+  }
+
+  .timeline-title{
+    display:none;
+  }
+
+  .timeline-list{
+    display:flex;
+    gap:.6rem;
+    overflow-x:auto;
+    border:none;
+    padding:.25rem;
+    scrollbar-width:thin;
+  }
+
+  .timeline-item{
+    flex-shrink:0;
+    padding:.6rem 1rem;
+    border:1px solid var(--nav-border);
+    border-radius:4px;
+  }
+
+  .timeline-item::before{
+    display:none;
+  }
+
+  .timeline-item-meta,
+  .timeline-price-tag{
+    display:none;
+  }
+
+  .precio-desktop{
+    display:none;
+  }
+
+  .precio-mobile{
+    display:block;
+    margin-top:1rem;
+  }
+}
+
+/* MOBILE */
+@media (max-width:768px){
+
+  .nav-links{
+    display:none;
+  }
+
+  .nav-sep{
+    display:none;
+  }
+
+  .hamburger{
+    display:flex;
+  }
+
+  .nav-inner{
+    padding:0 16px;
+    height:64px;
+  }
+
+  .logo{
+    font-size:1.4rem;
+  }
+
+  .mobile-menu{
+    overflow-y:auto;
+    padding:2rem;
+  }
+
+  .hero{
+    display:flex;
+    flex-direction:column;
+    min-height:auto;
+  }
+
+  .hero-left{
+    order:1;
+    padding:2rem 1.25rem;
+  }
+
+  .hero-right{
+    order:2;
+    height:300px;
+    min-height:220px;
+    max-height:320px;
+  }
+
+  .hero-title{
+    font-size:2.8rem;
+    line-height:1.1;
+  }
+
+  .hero-desc{
+    max-width:100%;
+  }
+
+  .hero-btns{
+    flex-direction:column;
+    width:100%;
+  }
+
+  .btn-solid,
+  .btn-ghost{
+    width:100%;
+    max-width:none;
+    text-align:center;
+  }
+
+  .hero-badge{
+    left:1rem;
+    bottom:1rem;
+  }
+
+  .features-strip-inner{
+    justify-content:flex-start;
+    gap:1rem;
+  }
+
+  .feat-sep{
+    display:none;
+  }
+
+  .trabajos-section{
+    padding:4rem 1rem;
+  }
+
+  .carousel-wrap{
+    overflow:visible;
+  }
+
+  .carousel-track{
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+    transform:none !important;
+  }
+
+  .gal-card{
+    width:100%;
+    max-width:100%;
+    flex:none;
+  }
+
+  .carousel-controls{
+    display:none;
+  }
+
+  .steps-grid{
+    grid-template-columns:1fr 1fr;
+    gap:1rem;
+  }
+
+  .galeria-ambiente{
+    padding:4rem 1rem;
+  }
+
+  .ambiente-grid{
+    grid-template-columns:1fr 1fr;
+    gap:.75rem;
+  }
+
+  .testimonios-grid{
+    grid-template-columns:1fr;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
+
+/* MOBILE PEQUEÑO */
+@media (max-width:480px){
+
+  .hero-left{
+    padding:2rem 1rem;
+  }
+
+  .hero-right{
+    height:260px;
+    min-height:220px;
+    max-height:280px;
+  }
+
+  .hero-title{
+    font-size:2.3rem;
+  }
+
+  .section-title{
+    font-size:1.8rem;
+  }
+
+  .trabajos-section{
+    padding:3rem 1rem;
+  }
+
+  .gal-card{
+    width:100%;
+    max-width:100%;
+    flex:none;
+  }
+
+  .steps-grid{
+    grid-template-columns:1fr;
+  }
+
+  .step{
+    border-left:2px solid rgba(184,130,42,.35);
+    border-top:none;
+    padding:1.25rem;
+  }
+
+  .ambiente-grid{
+    grid-template-columns:1fr;
+  }
+
+  .amb-img.wide{
+    grid-column:auto;
+  }
+
+  .amb-img img{
+    aspect-ratio:4/3;
+    object-fit:cover;
+  }
+
+  .cta-banner{
+    padding:3rem 1rem;
+  }
+
+  footer{
+    padding:2rem 1rem;
+  }
+}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lumine<em>Nombres</em></a>
+    <ul class="nav-links">
+      <li><a href="#trabajos">Trabajos</a></li>
+      <li><a href="#como-funciona">Cómo funciona</a></li>
+      <li><a href="producto.html">Personalizá</a></li>
+    </ul>
+    <div class="nav-sep"></div>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
+        <div class="theme-toggle-knob"></div>
+      </button>
+      <a href="carrito.html" class="nav-cart-btn">
+        🛒<span> Carrito</span>
+        <div class="cart-badge" id="cart-count">0</div>
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- MENÚ MOBILE -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#trabajos" onclick="closeMobile()">Trabajos</a>
+  <a href="#como-funciona" onclick="closeMobile()">Cómo funciona</a>
+  <a href="producto.html" onclick="closeMobile()">Personalizá tu nombre</a>
+  <a href="carrito.html">🛒 Carrito</a>
+  <div class="mobile-menu-theme">
+    <span id="mobile-theme-label">Modo claro</span>
+    <button class="theme-toggle" id="theme-toggle-mobile" aria-label="Cambiar tema">
+      <div class="theme-toggle-knob"></div>
+    </button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="hero-eyebrow">Impresión 3D · Luz LED · Personalizado</p>
+    <h1 class="hero-title">Tu nombre,<br><em>hecho para brillar.</em></h1>
+    <p class="hero-desc">Diseñamos nombres y frases con impresión 3D e iluminación LED. Elegís el color de luz, carcasa y difusor. Artesanal, único y tuyo.</p>
+    <div class="hero-btns">
+      <a href="producto.html" class="btn-solid">Crear el mío →</a>
+      <a href="#trabajos" class="btn-ghost">Ver trabajos</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <img src="2.jpg" alt="Nombre 3D iluminado en habitación">
+    <div class="hero-right-overlay"></div>
+    <div class="hero-badge">
+      <strong>100% personalizado</strong>
+      <span>Hecho a pedido · Envío a todo el país</span>
+    </div>
+  </div>
+</section>
+
+<!-- STRIP -->
+<div class="features-strip">
+  <div class="features-strip-inner">
+    <div class="feat-item"><span>✦</span> Impresión 3D artesanal</div>
+    <div class="feat-sep">·</div>
+    <div class="feat-item"><span>💡</span> LED de larga duración</div>
+    <div class="feat-sep">·</div>
+    <div class="feat-item"><span>🎨</span> Colores a elección</div>
+    <div class="feat-sep">·</div>
+    <div class="feat-item"><span>🚚</span> Envío a todo el país</div>
+    <div class="feat-sep">·</div>
+    <div class="feat-item"><span>✅</span> Vista previa antes de producir</div>
+  </div>
+</div>
+
+<!-- TRABAJOS — TIMELINE + CARRUSEL -->
+<section class="trabajos-section" id="trabajos">
+  <div class="section-head">
+    <span class="section-eyebrow">Trabajos reales</span>
+    <h2 class="section-title">Algunos de nuestros carteles</h2>
+  </div>
+
+  <div class="trabajos-layout">
+
+    <!-- TIMELINE (izquierda) -->
+    <div class="timeline">
+      <p class="timeline-title">Navegá por tipo</p>
+      <ul class="timeline-list" id="timeline-list">
+        <li class="timeline-item active" data-index="0" onclick="goToSlide(0)">
+          <div class="timeline-item-label">Nombre personal</div>
+          <div class="timeline-item-meta">LED celeste· Carcasa negra · Difusor blanco</div>
+          <span class="timeline-price-tag">desde $18.900</span>
+        </li>
+        <li class="timeline-item" data-index="1" onclick="goToSlide(1)">
+          <div class="timeline-item-label">Frase especial</div>
+          <div class="timeline-item-meta">LED blanca · Carcasa negra · Difusor blanco</div>
+          <span class="timeline-price-tag">desde $18.900</span>
+        </li>
+        <li class="timeline-item" data-index="2" onclick="goToSlide(2)">
+          <div class="timeline-item-label">Ambiente y deco</div>
+          <div class="timeline-item-meta">LED blanca · Carcasa negra · Difusor blanco</div>
+          <span class="timeline-price-tag">desde $18.900</span>
+        </li>
+        <li class="timeline-item" data-index="3" onclick="goToSlide(3)">
+          <div class="timeline-item-label">Regalo especial</div>
+          <div class="timeline-item-meta">LED verde · Carcasa negra · Difusor blanco</div>
+          <span class="timeline-price-tag">desde $18.900</span>
+        </li>
+        <li class="timeline-item" data-index="4" onclick="goToSlide(4)">
+          <div class="timeline-item-label">Para escritorio</div>
+          <div class="timeline-item-meta">LED blanco frío · Carcasa negra · Difusor blanco</div>
+          <span class="timeline-price-tag">desde $18.900</span>
+        </li>
+      </ul>
+
+      <!-- Panel precio dinámico — visible en desktop dentro del sidebar -->
+      <div class="precio-dinamico precio-desktop" id="precio-panel">
+        <div class="precio-dinamico-title">Precio Promedio</div>
+        <div class="precio-main" id="precio-valor">$22.000 <span>desde</span></div>
+        <div class="precio-factors" id="precio-factors">
+          <span class="precio-factor active">Letras: 4–5</span>
+          <span class="precio-factor">LED cálido</span>
+          <span class="precio-factor">Carcasa negra</span>
+          <span class="precio-factor">Difusor blanco</span>
+        </div>
+        <p class="precio-desc" id="precio-desc">El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor elegidos. Pedimos señal al confirmar.</p>
+      </div>
+    </div>
+
+    <!-- CARRUSEL (derecha) -->
+    <div class="carousel-col">
+      <div class="carousel-wrap">
+        <div class="carousel-track" id="carousel-track">
+          <div class="gal-card">
+            <img src="4.avif" alt="Nombre">
+            <div class="gal-card-price">desde $18.900<span class="price-note">varía según config.</span></div>
+            <div class="gal-card-info">
+              <div class="gal-card-name">Nombre personalizado</div>
+              <div class="gal-card-sub">LED celeste · Carcasa negra · Difusor blanco</div>
+            </div>
+          </div>
+          <div class="gal-card">
+            <img src="3.jpg" alt="Nombre">
+            <div class="gal-card-price">desde $18.900<span class="price-note">varía según config.</span></div>
+            <div class="gal-card-info">
+              <div class="gal-card-name">Nombre</div>
+              <div class="gal-card-sub">LED blanca · Carcasa negra · Difusor blanco</div>
+            </div>
+          </div>
+          <div class="gal-card">
+            <img src="5.avif" alt="Nombre">
+            <div class="gal-card-price">desde $18.900<span class="price-note">varía según config.</span></div>
+            <div class="gal-card-info">
+              <div class="gal-card-name">Ambiente y deco</div>
+              <div class="gal-card-sub">LED blanca · Carcasa negra · Difusor blanco</div>
+            </div>
+          </div>
+          <div class="gal-card">
+            <img src="7.jpg__width_1080" alt="Nombre">
+            <div class="gal-card-price">desde $18.900<span class="price-note">varía según config.</span></div>
+            <div class="gal-card-info">
+              <div class="gal-card-name">Regalo especial</div>
+              <div class="gal-card-sub">LED verde · Carcasa negra · Difusor blanco</div>
+            </div>
+          </div>
+          <div class="gal-card">
+            <img src="6.webp" alt="Nombre en escritorio">
+            <div class="gal-card-price">desde $18.900<span class="price-note">varía según config.</span></div>
+            <div class="gal-card-info">
+              <div class="gal-card-name">Para el escritorio</div>
+              <div class="gal-card-sub">LED blanco frío · Carcasa negra · Difusor blanco</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-controls">
+        <div class="carousel-dots" id="carousel-dots"></div>
+        <button class="carousel-btn" onclick="prevSlide()" aria-label="Anterior">←</button>
+        <button class="carousel-btn" onclick="nextSlide()" aria-label="Siguiente">→</button>
+      </div>
+
+      <!-- Panel precio móvil — debajo del carrusel, oculto en desktop -->
+      <div class="precio-dinamico precio-mobile" id="precio-panel-mobile">
+        <div class="precio-dinamico-title">Precio estimado</div>
+        <div class="precio-main" id="precio-valor-mobile">$18.900 <span>desde</span></div>
+        <div class="precio-factors" id="precio-factors-mobile">
+          <span class="precio-factor active">Letras: 5–8</span>
+          <span class="precio-factor">LED cálido</span>
+          <span class="precio-factor">Carcasa negra</span>
+          <span class="precio-factor">Difusor blanco</span>
+        </div>
+        <p class="precio-desc" id="precio-desc-mobile">El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor elegidos. Pedimos señal al confirmar.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESO -->
+<section class="proceso" id="como-funciona">
+  <div class="proceso-inner">
+    <div class="section-head">
+      <span class="section-eyebrow">Sin complicaciones</span>
+      <h2 class="section-title">¿Cómo funciona?</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h4>Personalizás online</h4>
+        <p>Elegís nombre o frase, color LED, carcasa y difusor. El precio se calcula en tiempo real según tu configuración.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h4>Te contactamos</h4>
+        <p>Recibís un mensaje por WhatsApp con la confirmación y una imagen de referencia antes de arrancar la producción.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h4>Fabricamos con cuidado</h4>
+        <p>Imprimimos y ensamblamos tu pieza de forma artesanal. Tiempo de producción: 3 a 5 días hábiles.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h4>Llega a tu puerta</h4>
+        <p>Enviamos a todo el país. El costo de envío se calcula al momento de despacho y te avisamos antes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALERÍA AMBIENTE -->
+<section class="galeria-ambiente">
+  <div class="section-head">
+    <span class="section-eyebrow">En su ambiente</span>
+    <h2 class="section-title">Dónde vive cada cartel</h2>
+  </div>
+  <div class="ambiente-grid">
+    <div class="amb-img wide">
+      <img src="Gamer And Office Room.jpeg" alt="Habitación con iluminación LED">
+    </div>
+    <div class="amb-img">
+      <img src="mesa-de-luz-genova-2cajoes-laca-rosa2-1.jpg" alt="Living con decoración LED">
+    </div>
+    <div class="amb-img">
+      <img src="mesita-de-luz-17-0b34ddcdc854bf01e317684196634210-480-0.webp" alt="Escritorio con cartel 3D">
+    </div>
+    <div class="amb-img wide">
+      <img src="cama-con-mesa-de-estudio-para-adolescente.jpg" alt="Dormitorio decorado con LED">
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section class="testimonios">
+  <div class="testimonios-inner">
+    <div class="section-head">
+      <span class="section-eyebrow">Lo que dicen</span>
+      <h2 class="section-title">Clientes</h2>
+    </div>
+    <div class="testimonios-grid">
+      <div class="test-card">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">"Lo pedí para el cuarto de mi hija y quedó increíble. La luz cálida le da un ambiente único. Lo recomiendo sin dudar."</p>
+        <div class="test-author">— Valentina M., Buenos Aires</div>
+      </div>
+      <div class="test-card">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">"Regalé uno para un cumpleaños y fue el presente favorito de la noche. La calidad es muy superior a lo que esperaba."</p>
+        <div class="test-author">— Tomás G., Córdoba</div>
+      </div>
+      <div class="test-card">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">"Pedí una frase personalizada y llegó exactamente como imaginé. El equipo fue muy atento durante todo el proceso."</p>
+        <div class="test-author">— Luciana R., Rosario</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-banner">
+  <h2>¿Listo para crear el tuyo?</h2>
+  <p>Personalizá tu nombre o frase en 3D con luz LED. Envío a todo el país.</p>
+  <p class="precio-info">El precio varía según cantidad de letras, color LED, carcasa y difusor elegidos.</p>
+  <a href="producto.html" class="btn-solid">Empezar y ver precio →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Lumine<em>Nombres</em></div>
+    <p>© 2025 LumineNombres. Hecho con ♥ en Argentina.</p>
+    <div class="footer-links">
+      <a href="producto.html">Tienda</a>
+      <a href="carrito.html">Carrito</a>
+      <a href="https://wa.me/5491151171205" target="_blank">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* ─────────────────────────────
+     MODO DÍA / NOCHE
+  ───────────────────────────── */
+  const html = document.documentElement;
+  const savedTheme = localStorage.getItem('lumineTheme') || 'light';
+  html.setAttribute('data-theme', savedTheme);
+
+  function toggleTheme() {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('lumineTheme', next);
+    const label = document.getElementById('mobile-theme-label');
+    if (label) label.textContent = next === 'dark' ? 'Modo oscuro' : 'Modo claro';
+  }
+
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  const mobileToggle = document.getElementById('theme-toggle-mobile');
+  if (mobileToggle) mobileToggle.addEventListener('click', toggleTheme);
+
+  const mobileLabel = document.getElementById('mobile-theme-label');
+  if (mobileLabel) mobileLabel.textContent = savedTheme === 'dark' ? 'Modo oscuro' : 'Modo claro';
+
+  /* ─────────────────────────────
+     CARRITO
+  ───────────────────────────── */
+  function updateCartCount() {
+    const items = JSON.parse(localStorage.getItem('luminCart') || '[]');
+    document.getElementById('cart-count').textContent = items.length;
+  }
+  updateCartCount();
+
+  /* ─────────────────────────────
+     MENÚ MOBILE
+  ───────────────────────────── */
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+  function closeMobile() { mobileMenu.classList.remove('open'); }
+
+  /* ─────────────────────────────
+     CARRUSEL + TIMELINE
+  ───────────────────────────── */
+  const slides = [
+    {
+      precio: '$18.900',
+      factors: ['Letras: 5–8', 'LED celeste', 'Carcasa negra', 'Difusor blanco'],
+      desc: 'El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor. A más letras o materiales premium, mayor costo.'
+    },
+    {
+     precio: '$18.900',
+      factors: ['Letras: 5–8', 'LED blanca', 'Carcasa negra', 'Difusor blanco'],
+      desc: 'El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor. A más letras o materiales premium, mayor costo.'
+    },
+    {
+precio: '$18.900',
+      factors: ['Letras: 5–8', 'LED blanca', 'Carcasa negra', 'Difusor blanco'],
+      desc: 'El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor. A más letras o materiales premium, mayor costo.'
+    },
+    {
+   precio: '$18.900',
+      factors: ['Letras: 5–8', 'LED verde', 'Carcasa negra', 'Difusor blanco'],
+      desc: 'El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor. A más letras o materiales premium, mayor costo.'
+    },
+    {
+  precio: '$18.900',
+      factors: ['Letras: 5–8', 'LED blanco frio', 'Carcasa negra', 'Difusor blanco'],
+      desc: 'El precio varía según cantidad de letras, color LED, tipo de carcasa y difusor. A más letras o materiales premium, mayor costo.'
+    }
+  ];
+
+  let currentSlide = 0;
+  const track = document.getElementById('carousel-track');
+  const cards = track.querySelectorAll('.gal-card');
+  const timelineItems = document.querySelectorAll('.timeline-item');
+  const dotsContainer = document.getElementById('carousel-dots');
+  const totalSlides = cards.length;
+
+  // Crear dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function getCardWidth() {
+    if (!cards[0]) return 0;
+    const style = window.getComputedStyle(track);
+    const gap = parseFloat(style.gap) || 16;
+    return cards[0].getBoundingClientRect().width + gap;
+  }
+
+  function updateCarousel() {
+    if (!isMobile()) {
+      const offset = currentSlide * getCardWidth();
+      track.style.transform = `translateX(-${offset}px)`;
+    }
+
+    // Dots
+    document.querySelectorAll('.carousel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === currentSlide);
+    });
+
+    // Timeline
+    timelineItems.forEach((item, i) => {
+      item.classList.toggle('active', i === currentSlide);
+    });
+
+    // Panel precio — actualizar ambas versiones (desktop sidebar + mobile)
+    const s = slides[currentSlide];
+    const factorsHtml = s.factors.map((f, i) =>
+      `<span class="precio-factor ${i === 0 ? 'active' : ''}">${f}</span>`
+    ).join('');
+
+    // Desktop
+    const valorEl = document.getElementById('precio-valor');
+    const descEl = document.getElementById('precio-desc');
+    const factorsEl = document.getElementById('precio-factors');
+    if (valorEl) valorEl.innerHTML = s.precio + ' <span>desde</span>';
+    if (descEl) descEl.textContent = s.desc;
+    if (factorsEl) factorsEl.innerHTML = factorsHtml;
+
+    // Mobile
+    const valorMEl = document.getElementById('precio-valor-mobile');
+    const descMEl = document.getElementById('precio-desc-mobile');
+    const factorsMEl = document.getElementById('precio-factors-mobile');
+    if (valorMEl) valorMEl.innerHTML = s.precio + ' <span>desde</span>';
+    if (descMEl) descMEl.textContent = s.desc;
+    if (factorsMEl) factorsMEl.innerHTML = factorsHtml;
+  }
+
+  function goToSlide(index) {
+    currentSlide = Math.max(0, Math.min(index, totalSlides - 1));
+    updateCarousel();
+  }
+  function nextSlide() { goToSlide((currentSlide + 1) % totalSlides); }
+  function prevSlide() { goToSlide((currentSlide - 1 + totalSlides) % totalSlides); }
+
+  // Swipe en móvil
+  let touchStartX = 0;
+  track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  track.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) diff > 0 ? nextSlide() : prevSlide();
+  });
+
+  updateCarousel();
+
+  // Recalcular posición al cambiar tamaño / rotar pantalla
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (isMobile()) track.style.transform = '';
+      updateCarousel();
+    }, 100);
+  });
+</script>
+</body>
+</html>

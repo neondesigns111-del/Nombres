@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personalizá tu Nombre 3D — LumineNombres</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ──────────────────────────────────────── */
+    :root {
+      --crema:        #faf6f0;
+      --crema-oscura: #f0e8dc;
+      --cafe:         #2c1f14;
+      --cafe-medio:   #5c3d2e;
+      --dorado:       #b8822a;
+      --dorado-claro: #d4a84b;
+      --gris-texto:   #6b5c4e;
+      --borde:        rgba(44,31,20,0.12);
+      --error:        #c0392b;
+      --bg:           var(--crema);
+      --surface:      var(--crema-oscura);
+      --text:         var(--cafe);
+      --text-muted:   var(--gris-texto);
+      --nav-bg:       rgba(250,246,240,0.96);
+      --input-bg:     #fff;
+      --shadow:       rgba(44,31,20,0.15);
+      --transition:   0.3s ease;
+    }
+    [data-theme="dark"] {
+      --bg:           #141009;
+      --surface:      #1e160d;
+      --text:         #f0e8dc;
+      --text-muted:   #9e8b79;
+      --cafe:         #f0e8dc;
+      --cafe-medio:   #c9b49e;
+      --gris-texto:   #9e8b79;
+      --borde:        rgba(240,232,220,0.1);
+      --nav-bg:       rgba(20,16,9,0.96);
+      --input-bg:     #1a1108;
+      --shadow:       rgba(0,0,0,0.5);
+      --crema-oscura: #1e160d;
+      --error:        #e05050;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ── NAV ─────────────────────────────────────────── */
+    nav {
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--borde);
+      position: sticky; top: 0; z-index: 100;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px;
+    }
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.45rem; font-weight: 700;
+      color: var(--text); text-decoration: none;
+    }
+    .logo em { color: var(--dorado); font-style: normal; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-back {
+      color: var(--text-muted); text-decoration: none;
+      font-size: 0.82rem; font-weight: 500;
+      transition: color 0.25s;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-back:hover { color: var(--dorado); }
+    .nav-cart {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--text); color: var(--bg);
+      padding: 0.5rem 1.2rem; border-radius: 2px;
+      text-decoration: none; font-size: 0.78rem;
+      font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      transition: background 0.25s; position: relative;
+    }
+    .nav-cart:hover { background: var(--dorado); color: #fff; }
+    .cart-badge {
+      background: var(--dorado-claro); color: #2c1f14;
+      border-radius: 50%; width: 18px; height: 18px;
+      font-size: 0.65rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; top: -7px; right: -7px;
+    }
+
+    /* ── THEME TOGGLE ────────────────────────────────── */
+    .theme-toggle {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1.5px solid var(--borde);
+      background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; transition: all 0.25s;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--dorado); color: var(--dorado); background: var(--surface); }
+    .icon-sun  { display: none; }
+    .icon-moon { display: block; }
+    [data-theme="dark"] .icon-sun  { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+
+    /* ── LAYOUT ──────────────────────────────────────── */
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+    .page-header { margin-bottom: 2.5rem; }
+    .page-eyebrow {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--dorado);
+      margin-bottom: 0.6rem; display: block;
+    }
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700; color: var(--text); line-height: 1.15;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 4rem;
+      align-items: start;
+    }
+
+    /* ── GALERÍA ─────────────────────────────────────── */
+    .foto-panel { position: sticky; top: 80px; }
+
+    /* Imagen principal con fade suave */
+    .foto-main {
+      border-radius: 6px; overflow: hidden;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 8px 40px var(--shadow);
+      background: var(--surface);
+      aspect-ratio: 4/3;
+      position: relative;
+    }
+    .foto-main img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: opacity 0.35s ease;
+    }
+    .foto-main img.fade { opacity: 0; }
+
+    /* Thumbs: 3 por fila, cuadradas */
+    .foto-thumbs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+    .foto-thumb {
+      border-radius: 4px; overflow: hidden; cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, transform 0.2s;
+      aspect-ratio: 1;
+      background: var(--surface);
+    }
+    .foto-thumb.active { border-color: var(--dorado); }
+    .foto-thumb:hover { transform: scale(1.03); border-color: var(--dorado-claro); }
+    .foto-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+
+    .foto-caption {
+      margin-top: 0.9rem; padding: 0.9rem 1.1rem;
+      background: var(--surface);
+      border-left: 3px solid var(--dorado);
+      font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;
+      border-radius: 0 3px 3px 0;
+      transition: background var(--transition);
+    }
+    .foto-caption strong { color: var(--text); display: block; margin-bottom: 0.25rem; }
+
+    /* ── FORMULARIO ──────────────────────────────────── */
+    .form-section { margin-bottom: 2.5rem; }
+    .form-section-title {
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 3.5px;
+      text-transform: uppercase; color: var(--dorado);
+      margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .form-section-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--borde);
+    }
+
+    .field { margin-bottom: 1.2rem; }
+    .field label {
+      display: block; font-size: 0.8rem; font-weight: 600;
+      margin-bottom: 0.45rem; color: var(--cafe-medio); letter-spacing: 0.5px;
+    }
+    .field label .req { color: var(--dorado); }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1.5px solid var(--borde);
+      color: var(--text);
+      font-family: 'Jost', sans-serif; font-size: 0.95rem;
+      padding: 0.8rem 1rem; border-radius: 2px;
+      outline: none;
+      transition: border-color 0.25s, background var(--transition), color var(--transition);
+      appearance: none;
+    }
+    .field input::placeholder,
+    .field textarea::placeholder { color: var(--text-muted); opacity: 0.7; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--dorado); }
+    .field input.error, .field textarea.error, .field select.error { border-color: var(--error); }
+    .field-hint { font-size: 0.74rem; color: var(--text-muted); margin-top: 0.4rem; }
+    .field-error { font-size: 0.74rem; color: var(--error); margin-top: 0.3rem; display: none; }
+    .field.has-error .field-error { display: block; }
+    .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b8822a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem; cursor: pointer;
+    }
+
+    /* ── COLORES LED ─────────────────────────────────── */
+    .color-grid { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+    .color-opt { position: relative; }
+    .color-opt input { display: none; }
+    .color-opt label {
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      cursor: pointer;
+    }
+    .color-swatch {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 3px solid transparent; outline: 2px solid transparent;
+      transition: all 0.2s; display: block;
+    }
+    .color-opt input:checked + label .color-swatch {
+      border-color: var(--bg); outline-color: var(--dorado);
+      transform: scale(1.1); box-shadow: 0 0 0 2px var(--dorado);
+    }
+    .color-label { font-size: 0.62rem; color: var(--text-muted); text-align: center; letter-spacing: 0.3px; max-width: 50px; }
+
+    /* ── CANTIDAD ────────────────────────────────────── */
+    .qty-row { display: flex; align-items: center; gap: 1rem; }
+    .qty-btn {
+      width: 38px; height: 38px; border: 1.5px solid var(--borde);
+      background: none; color: var(--text); font-size: 1.2rem;
+      cursor: pointer; border-radius: 2px; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { border-color: var(--dorado); color: var(--dorado); }
+    .qty-num { font-size: 1.1rem; font-weight: 600; min-width: 28px; text-align: center; }
+
+    /* ── PRECIO ──────────────────────────────────────── */
+    .price-row {
+      padding: 1.4rem; background: var(--surface); border-radius: 4px;
+      margin-bottom: 1.5rem; border: 1px solid var(--borde);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .price-top {
+      display: flex; align-items: flex-end;
+      justify-content: space-between; gap: 1rem;
+    }
+    .price-label { font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .price-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem; font-weight: 700; color: var(--text);
+      line-height: 1;
+    }
+    .price-note { font-size: 0.73rem; color: var(--text-muted); text-align: right; max-width: 170px; line-height: 1.5; }
+    .price-breakdown { display: none; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px dashed var(--borde); }
+    .price-breakdown.visible { display: block; }
+    .breakdown-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.77rem; color: var(--text-muted); padding: 0.2rem 0;
+    }
+    .breakdown-row .b-val { font-weight: 500; color: var(--cafe-medio); }
+    .breakdown-total {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.82rem; font-weight: 700; color: var(--text);
+      padding-top: 0.5rem; margin-top: 0.4rem; border-top: 1px solid var(--borde);
+    }
+    .breakdown-total .b-val { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; }
+
+    /* ── BOTONES ─────────────────────────────────────── */
+    .btn-primary-full {
+      width: 100%; background: var(--text); color: var(--bg);
+      border: none; padding: 1.1rem 2rem; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 0.88rem; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+      transition: background 0.25s, color 0.25s;
+      display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    }
+    .btn-primary-full:hover { background: var(--dorado); color: #fff; }
+    .btn-wa-full {
+      width: 100%; background: #25D366; color: #fff;
+      border: none; padding: 1rem 2rem; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 0.85rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      transition: background 0.25s;
+      display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.7rem;
+    }
+    .btn-wa-full:hover { background: #1da851; }
+
+    /* ── TRUST ───────────────────────────────────────── */
+    .trust-row {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem;
+      margin-top: 1.5rem;
+    }
+    .trust-item {
+      background: var(--surface); padding: 0.75rem 1rem; border-radius: 3px;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      font-size: 0.77rem; color: var(--text-muted); line-height: 1.4;
+      transition: background var(--transition);
+    }
+    .trust-item em { font-style: normal; font-size: 1rem; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    /* ── TOAST ───────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--text); color: var(--bg);
+      padding: 0.9rem 2rem; border-radius: 3px;
+      font-size: 0.85rem; font-weight: 600; z-index: 999;
+      transition: transform 0.4s; white-space: nowrap;
+      box-shadow: 0 8px 30px var(--shadow);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+
+    /* Tablet: 768–1024px — columna única, foto panel no sticky */
+    @media (max-width: 1024px) {
+      .product-grid { gap: 2.5rem; }
+    }
+
+    @media (max-width: 900px) {
+      .product-grid { grid-template-columns: 1fr; gap: 0; }
+      .foto-panel { position: static; margin-bottom: 2.5rem; }
+
+      /* En tablet/móvil: imagen principal más alta, thumbs en fila de 6 */
+      .foto-thumbs { grid-template-columns: repeat(6, 1fr); gap: 0.5rem; }
+      .foto-thumb { aspect-ratio: 1; }
+    }
+
+    /* Móvil: hasta 600px */
+    @media (max-width: 600px) {
+      .page-wrap { padding: 1.5rem 1rem 4rem; }
+      .page-title { font-size: 1.6rem; }
+
+      .nav-inner { padding: 0 1rem; height: 56px; }
+      .nav-back span { display: none; } /* solo mostrar ← */
+      .nav-right { gap: 0.6rem; }
+
+      /* Foto principal más cuadrada en mobile */
+      .foto-main { aspect-ratio: 3/2; }
+
+      /* Thumbs: 3 en la primera fila, 3 en la segunda */
+      .foto-thumbs { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+
+      .field-row { grid-template-columns: 1fr; }
+      .trust-row { grid-template-columns: 1fr; }
+
+      .price-top { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .price-note { text-align: left; max-width: 100%; }
+      .price-amount { font-size: 2rem; }
+
+      /* Colores LED más chicos en mobile */
+      .color-swatch { width: 38px; height: 38px; }
+      .color-label { font-size: 0.58rem; }
+
+      .btn-primary-full, .btn-wa-full { padding: 1rem 1.5rem; font-size: 0.82rem; }
+    }
+
+    /* Mobile pequeño */
+    @media (max-width: 380px) {
+      .foto-thumbs { grid-template-columns: repeat(3, 1fr); }
+      .color-grid { gap: 0.5rem; }
+      .color-swatch { width: 34px; height: 34px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lumine<em>Nombres</em></a>
+    <div class="nav-right">
+      <a href="index.html" class="nav-back">← <span>Inicio</span></a>
+      <button class="theme-toggle" id="theme-toggle" title="Cambiar modo" aria-label="Alternar modo oscuro/claro">
+        <svg class="icon-moon" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg class="icon-sun"  width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <a href="carrito.html" class="nav-cart">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Carrito
+        <div class="cart-badge" id="cart-count">0</div>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <span class="page-eyebrow">Personalización</span>
+    <h1 class="page-title">Creá tu nombre o frase 3D con LED</h1>
+  </div>
+
+  <div class="product-grid">
+
+    <!-- GALERÍA -->
+    <div class="foto-panel">
+      <div class="foto-main" id="foto-main">
+        <img id="foto-main-img"
+          src="2.jpg"
+          alt="Nombre 3D LED">
+      </div>
+      <div class="foto-thumbs">
+        <div class="foto-thumb active" onclick="cambiarFoto(this, '2.jpg')">
+          <img src="2.jpg" alt="Foto 1" loading="lazy">
+        </div>
+        <div class="foto-thumb" onclick="cambiarFoto(this, '3.jpg')">
+          <img src="3.jpg" alt="Foto 2" loading="lazy">
+        </div>
+        <div class="foto-thumb" onclick="cambiarFoto(this, '4.avif')">
+          <img src="4.avif" alt="Foto 3" loading="lazy">
+        </div>
+        <div class="foto-thumb" onclick="cambiarFoto(this, '5.avif')">
+          <img src="5.avif" alt="Foto 4" loading="lazy">
+        </div>
+        <div class="foto-thumb" onclick="cambiarFoto(this, '6.webp')">
+          <img src="6.webp" alt="Foto 5" loading="lazy">
+        </div>
+        <div class="foto-thumb" onclick="cambiarFoto(this, '7.jpg__width_1080')">
+          <img src="7.jpg__width_1080" alt="Foto 6" loading="lazy">
+        </div>
+      </div>
+      <div class="foto-caption">
+        <strong>Fotos de trabajos</strong>
+        El resultado final puede variar levemente según colores elegidos. Siempre te mandamos una foto de confirmación antes de producir.
+      </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <div class="form-panel">
+
+      <!-- 01 DISEÑO -->
+      <div class="form-section">
+        <div class="form-section-title">01 · Tu diseño</div>
+
+        <div class="field" id="f-nombre">
+          <label>Nombre o frase <span class="req">*</span></label>
+          <input type="text" id="inp-nombre" maxlength="20" placeholder="Ej: SOFÍA, MAMÁ, AMOR ETERNO" autocomplete="off">
+          <div class="field-hint">Hasta 20 caracteres · Letras, números y espacios</div>
+          <div class="field-error">Por favor ingresá el nombre o frase.</div>
+        </div>
+
+        <div class="field">
+          <label>Color de la LED <span class="req">*</span></label>
+          <div class="color-grid">
+            <div class="color-opt">
+              <input type="radio" name="led" id="led1" value="Cálido (blanco cálido)" checked>
+              <label for="led1"><div class="color-swatch" style="background:#fff4a3;box-shadow:0 0 8px #ffe88a"></div><span class="color-label">Cálido</span></label>
+            </div>
+            <div class="color-opt">
+              <input type="radio" name="led" id="led2" value="Blanco frío">
+              <label for="led2"><div class="color-swatch" style="background:#e8f4ff;box-shadow:0 0 6px #c8e8ff"></div><span class="color-label">Blanco frío</span></label>
+            </div>
+            <div class="color-opt">
+              <input type="radio" name="led" id="led3" value="Rojo / Rosa">
+              <label for="led3"><div class="color-swatch" style="background:#fe0000;box-shadow:0 0 8px #ff336688"></div><span class="color-label">Rojo</span></label>
+            </div>
+            <div class="color-opt">
+              <input type="radio" name="led" id="led4" value="Azul">
+              <label for="led4"><div class="color-swatch" style="background:#0099ff;box-shadow:0 0 8px #0099ff88"></div><span class="color-label">Azul</span></label>
+            </div>
+            <div class="color-opt">
+              <input type="radio" name="led" id="led5" value="Verde">
+              <label for="led5"><div class="color-swatch" style="background:#00cc77;box-shadow:0 0 8px #00cc7788"></div><span class="color-label">Verde</span></label>
+            </div>
+            <div class="color-opt">
+              <input type="radio" name="led" id="led6" value="Naranja">
+              <label for="led6"><div class="color-swatch" style="background:#ff8800;box-shadow:0 0 8px #ff880088"></div><span class="color-label">Naranja</span></label>
+            </div>
+            <div class="color-opt">
+              <input type="radio" name="led" id="led7" value="Violeta">
+              <label for="led7"><div class="color-swatch" style="background:#9933ff;box-shadow:0 0 8px #9933ff88"></div><span class="color-label">Violeta</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Color de carcasa <span class="req">*</span></label>
+            <select id="inp-carcasa">
+              <option value="Negro mate">Negro</option>
+              <option value="Blanco hueso">Blanco</option>
+              <option value="Dorado">Azul</option>
+              <option value="Rosa pastel">Rosa</option>
+              <option value="Celeste">Celeste</option>
+              <option value="Verde menta">Verde</option>
+              <option value="Gris">Gris</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Color de difusor <span class="req">*</span></label>
+            <select id="inp-difusor">
+              <option value="Blanco hueso">Blanco traslucido</option>
+              <option value="Dorado">Azul traslucido</option>
+              <option value="Rosa pastel">Rosa traslucido</option>
+              <option value="Celeste">Celeste traslucido</option>
+              <option value="Verde menta">Verde traslucido</option>
+              <option value="Gris">Gris</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Cantidad</label>
+          <div class="qty-row">
+            <button class="qty-btn" id="qty-minus" type="button">−</button>
+            <span class="qty-num" id="qty-num">1</span>
+            <button class="qty-btn" id="qty-plus" type="button">+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Nota adicional <small style="color:var(--text-muted);font-weight:400">(opcional)</small></label>
+          <textarea id="inp-nota" maxlength="300" placeholder="Ej: Primera letra más grande, tamaño especial, ¿es para regalo?, algo que quieras aclarar..."></textarea>
+          <div class="field-hint">Solo si tenés algo que aclarar. No es obligatorio.</div>
+        </div>
+      </div>
+
+      <!-- 02 CONTACTO -->
+      <div class="form-section">
+        <div class="form-section-title">02 · Tus datos de contacto</div>
+        <div class="field-row">
+          <div class="field" id="f-nombre-comp">
+            <label>Nombre y apellido <span class="req">*</span></label>
+            <input type="text" id="inp-nombre-comp" placeholder="Ej: María González" autocomplete="name">
+            <div class="field-error">Ingresá tu nombre completo.</div>
+          </div>
+          <div class="field" id="f-tel">
+            <label>Teléfono / WhatsApp <span class="req">*</span></label>
+            <input type="tel" id="inp-tel" placeholder="Ej: 11 1234-5678" autocomplete="tel">
+            <div class="field-error">Ingresá tu número de contacto.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 03 ENVÍO -->
+      <div class="form-section">
+        <div class="form-section-title">03 · Datos de entrega</div>
+
+        <div class="field" id="f-provincia">
+          <label>Provincia <span class="req">*</span></label>
+          <select id="inp-provincia">
+            <option value="">— Seleccioná —</option>
+            <option>Buenos Aires (Ciudad)</option>
+            <option>Buenos Aires (Provincia)</option>
+            <option>Córdoba</option>
+            <option>Santa Fe</option>
+            <option>Mendoza</option>
+            <option>Tucumán</option>
+            <option>Salta</option>
+            <option>Entre Ríos</option>
+            <option>Corrientes</option>
+            <option>Misiones</option>
+            <option>Chaco</option>
+            <option>Santiago del Estero</option>
+            <option>San Juan</option>
+            <option>Jujuy</option>
+            <option>Río Negro</option>
+            <option>Neuquén</option>
+            <option>Formosa</option>
+            <option>Chubut</option>
+            <option>San Luis</option>
+            <option>Catamarca</option>
+            <option>La Rioja</option>
+            <option>La Pampa</option>
+            <option>Santa Cruz</option>
+            <option>Tierra del Fuego</option>
+          </select>
+          <div class="field-error">Seleccioná tu provincia.</div>
+        </div>
+
+        <div class="field" id="f-ciudad">
+          <label>Ciudad / Localidad <span class="req">*</span></label>
+          <input type="text" id="inp-ciudad" placeholder="Ej: Palermo, Rosario, Villa Carlos Paz">
+          <div class="field-error">Ingresá tu ciudad.</div>
+        </div>
+
+        <div class="field" id="f-direccion">
+          <label>Dirección completa <span class="req">*</span></label>
+          <input type="text" id="inp-direccion" placeholder="Calle, número, piso/depto (si aplica)" autocomplete="street-address">
+          <div class="field-error">Ingresá tu dirección de entrega.</div>
+        </div>
+
+        <div class="field" id="f-cp">
+          <label>Código postal <span class="req">*</span></label>
+          <input type="text" id="inp-cp" placeholder="Ej: 1425" maxlength="8" autocomplete="postal-code">
+          <div class="field-hint">Lo necesitamos para calcular el costo de envío.</div>
+          <div class="field-error">Ingresá el código postal.</div>
+        </div>
+      </div>
+
+      <!-- PRECIO Y BOTONES -->
+      <div class="price-row">
+        <div class="price-top">
+          <div>
+            <div class="price-label">Total del pedido (sin envío)</div>
+            <div class="price-amount" id="price-show">—</div>
+          </div>
+          <div class="price-note">El envío se calcula al momento del despacho y te avisamos por WhatsApp antes.</div>
+        </div>
+        <div class="price-breakdown" id="price-breakdown">
+          <div class="breakdown-row">
+            <span class="b-label">✦ Transformador + ficha</span>
+            <span class="b-val">$5.000</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="b-label" id="b-letras-label">✦ Letras (0 × $3.500)</span>
+            <span class="b-val" id="b-letras-val">$0</span>
+          </div>
+          <div class="breakdown-row" id="b-qty-row" style="display:none">
+            <span class="b-label" id="b-qty-label">✦ Cantidad</span>
+            <span class="b-val" id="b-qty-val"></span>
+          </div>
+          <div class="breakdown-total">
+            <span>Total</span>
+            <span class="b-val" id="b-total">—</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary-full" id="btn-carrito" type="button">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Agregar al carrito
+      </button>
+
+      <button class="btn-wa-full" id="btn-wa" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Pedir directamente por WhatsApp
+      </button>
+
+      <div class="trust-row">
+        <div class="trust-item"><em>✅</em> Confirmamos tu pedido antes de producirlo</div>
+        <div class="trust-item"><em>📦</em> Embalaje cuidadoso para que llegue perfecto</div>
+        <div class="trust-item"><em>💬</em> Te avisamos el costo de envío antes del despacho</div>
+        <div class="trust-item"><em>🔁</em> 6 meses de garantía contra defectos</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ ¡Agregado al carrito!</div>
+
+<script>
+  // ── TEMA ───────────────────────────────────────────────
+  const html = document.documentElement;
+  const savedTheme = localStorage.getItem('luminTheme') || 'light';
+  html.setAttribute('data-theme', savedTheme);
+
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('luminTheme', next);
+  });
+
+  // ── GALERÍA ────────────────────────────────────────────
+  function cambiarFoto(el, url) {
+    document.querySelectorAll('.foto-thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const img = document.getElementById('foto-main-img');
+    img.classList.add('fade');
+    setTimeout(() => {
+      img.src = url;
+      img.onload = () => img.classList.remove('fade');
+      // fallback si ya está cacheada
+      if (img.complete) img.classList.remove('fade');
+    }, 200);
+  }
+
+  // ── CARRITO BADGE ──────────────────────────────────────
+  function updateCartCount() {
+    const items = JSON.parse(localStorage.getItem('luminCart') || '[]');
+    document.getElementById('cart-count').textContent = items.length;
+  }
+  updateCartCount();
+
+  // ── CANTIDAD ───────────────────────────────────────────
+  const PRECIO_LETRA = 3500;
+  const GASTOS_FIJOS = 5000;
+  let qty = 1;
+
+  document.getElementById('qty-minus').onclick = () => {
+    if (qty > 1) { qty--; document.getElementById('qty-num').textContent = qty; updatePrice(); }
+  };
+  document.getElementById('qty-plus').onclick = () => {
+    if (qty < 10) { qty++; document.getElementById('qty-num').textContent = qty; updatePrice(); }
+  };
+
+  // ── PRECIO DINÁMICO ────────────────────────────────────
+  document.getElementById('inp-nombre').addEventListener('input', updatePrice);
+
+  function updatePrice() {
+    const nombre = document.getElementById('inp-nombre').value;
+    const letras = nombre.replace(/\s/g, '').length;
+    const costoLetras = letras * PRECIO_LETRA;
+    const total = (GASTOS_FIJOS + costoLetras) * qty;
+    const fmt = n => '$' + n.toLocaleString('es-AR');
+
+    if (letras === 0) {
+      document.getElementById('price-show').textContent = '—';
+      document.getElementById('price-breakdown').classList.remove('visible');
+    } else {
+      document.getElementById('price-show').textContent = fmt(total);
+      document.getElementById('price-breakdown').classList.add('visible');
+      document.getElementById('b-letras-label').textContent = `✦ Letras (${letras} × ${fmt(PRECIO_LETRA)})`;
+      document.getElementById('b-letras-val').textContent = fmt(costoLetras);
+      const qtyRow = document.getElementById('b-qty-row');
+      if (qty > 1) {
+        qtyRow.style.display = 'flex';
+        document.getElementById('b-qty-label').textContent = `✦ Cantidad (×${qty})`;
+        document.getElementById('b-qty-val').textContent = fmt(total);
+      } else {
+        qtyRow.style.display = 'none';
+      }
+      document.getElementById('b-total').textContent = fmt(total);
+    }
+  }
+
+  // ── VALIDACIÓN ─────────────────────────────────────────
+  function validateAll() {
+    const fields = [
+      { id: 'f-nombre',      val: () => document.getElementById('inp-nombre').value.trim() },
+      { id: 'f-nombre-comp', val: () => document.getElementById('inp-nombre-comp').value.trim() },
+      { id: 'f-tel',         val: () => document.getElementById('inp-tel').value.trim() },
+      { id: 'f-provincia',   val: () => document.getElementById('inp-provincia').value },
+      { id: 'f-ciudad',      val: () => document.getElementById('inp-ciudad').value.trim() },
+      { id: 'f-direccion',   val: () => document.getElementById('inp-direccion').value.trim() },
+      { id: 'f-cp',          val: () => document.getElementById('inp-cp').value.trim() },
+    ];
+    let ok = true;
+    fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (!f.val()) {
+        el.classList.add('has-error');
+        el.querySelector('input,select,textarea')?.classList.add('error');
+        ok = false;
+      } else {
+        el.classList.remove('has-error');
+        el.querySelector('input,select,textarea')?.classList.remove('error');
+      }
+    });
+    return ok;
+  }
+
+  function getFormData() {
+    const nombre = document.getElementById('inp-nombre').value.trim();
+    const letras = nombre.replace(/\s/g, '').length;
+    const precio = (GASTOS_FIJOS + letras * PRECIO_LETRA) * qty;
+    return {
+      nombre: nombre.toUpperCase(),
+      led: document.querySelector('input[name="led"]:checked')?.value || '',
+      carcasa: document.getElementById('inp-carcasa').value,
+      difusor: document.getElementById('inp-difusor').value,
+      nota: document.getElementById('inp-nota').value.trim(),
+      qty, precio, letras,
+      cliente:   document.getElementById('inp-nombre-comp').value.trim(),
+      telefono:  document.getElementById('inp-tel').value.trim(),
+      provincia: document.getElementById('inp-provincia').value,
+      ciudad:    document.getElementById('inp-ciudad').value.trim(),
+      direccion: document.getElementById('inp-direccion').value.trim(),
+      cp:        document.getElementById('inp-cp').value.trim(),
+    };
+  }
+
+  // ── CARRITO ────────────────────────────────────────────
+  document.getElementById('btn-carrito').onclick = () => {
+    if (!validateAll()) {
+      document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const data = { ...getFormData(), id: Date.now() };
+    const cart = JSON.parse(localStorage.getItem('luminCart') || '[]');
+    cart.push(data);
+    localStorage.setItem('luminCart', JSON.stringify(cart));
+    updateCartCount();
+    const btn = document.getElementById('btn-carrito');
+    btn.textContent = '✓ ¡Agregado! → Ver carrito';
+    btn.style.background = '#2a7d4f';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Agregar al carrito';
+      btn.style.background = '';
+    }, 3000);
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  };
+
+  // ── WHATSAPP ───────────────────────────────────────────
+  document.getElementById('btn-wa').onclick = () => {
+    if (!validateAll()) {
+      document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const d = getFormData();
+    let msg = `🌟 *Pedido LumineNombres*\n\n`;
+    msg += `📝 *Nombre/frase:* ${d.nombre}\n`;
+    msg += `💡 *LED:* ${d.led}\n`;
+    msg += `📦 *Carcasa:* ${d.carcasa}\n`;
+    msg += `🔆 *Difusor:* ${d.difusor}\n`;
+    msg += `🔢 *Cantidad:* ${d.qty}\n`;
+    if (d.nota) msg += `📌 *Nota:* ${d.nota}\n`;
+    msg += `\n👤 *Nombre:* ${d.cliente}\n`;
+    msg += `📱 *Teléfono:* ${d.telefono}\n`;
+    msg += `\n🏠 *Entrega:*\n${d.direccion}\n${d.ciudad}, ${d.provincia}\nCP: ${d.cp}\n`;
+    msg += `\n💰 *Desglose del precio:*\n`;
+    msg += `  • Transformador + ficha: $5.000\n`;
+    msg += `  • Letras (${d.letras} × $3.500): $${(d.letras * 3500).toLocaleString('es-AR')}\n`;
+    if (d.qty > 1) msg += `  • Cantidad ×${d.qty}\n`;
+    msg += `  *Total (sin envío): $${d.precio.toLocaleString('es-AR')}*\n`;
+    msg += `_(El envío se cotiza y avisa antes del despacho)_`;
+    window.open(`https://wa.me/5491151171205?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+</script>
+</body>
+</html>
